@@ -12,8 +12,9 @@ public class RequestListener {
 		
 		while (true) {
 			Socket connectionSocket = welcomeSocket.accept();
-			
-			//BufferedReader 
+			RequestSender sender = new RequestSender(connectionSocket);
+			Thread newThread = new Thread(sender);
+			newThread.start();	
 		}
 	}
 }

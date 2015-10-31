@@ -22,7 +22,16 @@ public class RequestSender implements Runnable {
 			InputStream requestInput = requestSocket.getInputStream();
 			Socket outSocket = new Socket("case.edu", 80);
 			OutputStream output = outSocket.getOutputStream();
+			RequestProcessor processor = new RequestProcessor(requestSocket, outSocket);
+			new Thread(processor).start();
 			
+			
+			int temp = requestInput.read();
+			while (temp != -1) {
+				System.out.print((char)temp);
+				output.write(temp);
+				temp = requestInput.read();
+			}
 		} 
 		catch (IOException e) {
 			System.out.println(e.getMessage());

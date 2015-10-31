@@ -8,13 +8,19 @@ public class RequestListener {
 	
 	public static void main(String[] args) throws IOException {
 		
+		System.out.println("Listening");
 		ServerSocket welcomeSocket = new ServerSocket(portNum);
 		
-		while (true) {
-			Socket connectionSocket = welcomeSocket.accept();
-			RequestSender sender = new RequestSender(connectionSocket);
-			Thread newThread = new Thread(sender);
-			newThread.start();	
-		}
+
+		System.out.println("waiting..");
+		Socket connectionSocket = welcomeSocket.accept();
+		System.out.println("connected");
+		RequestSender sender = new RequestSender(connectionSocket);
+		Thread newThread = new Thread(sender);
+		newThread.start();	
+		
+			
+		connectionSocket.close();
+		System.out.println("exited");
 	}
 }

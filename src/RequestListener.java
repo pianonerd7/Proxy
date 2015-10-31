@@ -6,8 +6,9 @@ public class RequestListener {
 	
 	private static final int portNum = 5026;
 	
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) {
 		
+		try {
 		System.out.println("Listening");
 		ServerSocket welcomeSocket = new ServerSocket(portNum);
 		
@@ -22,5 +23,9 @@ public class RequestListener {
 			
 		connectionSocket.close();
 		System.out.println("exited");
+		}
+		catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
 	}
 }

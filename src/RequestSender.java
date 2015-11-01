@@ -6,10 +6,18 @@ import java.nio.ByteBuffer;
 public class RequestSender implements Runnable {
 
 	private String request;
-	Socket requestSocket;
+	private Socket requestSocket;
 	
 	public RequestSender (Socket requestSocket) {
 		this.requestSocket = requestSocket;
+	}
+	
+	public byte[] requestAsByteArr() {
+		return request.getBytes();
+	}
+	
+	public String toString() {
+		return request;
 	}
 	
 	@Override
@@ -30,12 +38,11 @@ public class RequestSender implements Runnable {
 					startEditor(bufferInput, requestIP.getHostAddress());
 					bufferInput.clear();
 					System.out.print(toString());
-					Socket outSocket = new Socket(getHostName(), 80);
+					Socket outSocket = new Socket(searchNameOfHost(), 80);
+					OutputStream outputStream = outSocket.getOutputStream();
 					RequestProcessor processor = new RequestProcessor(requestSocket, outSocket);
 					new Thread(processor).start();
-					
-					OutputStream outputStream = outSocket.getOutputStream();
-					outputStream.write(toByteArr());
+					outputStream.write(requestAsByteArr());
 					
 				}
 				temp = requestInput.read();
@@ -45,6 +52,47 @@ public class RequestSender implements Runnable {
 		} 
 		catch (IOException e) {
 			System.out.println(e.getMessage());
+		}
+	}
+	
+	private void startEditor(ByteBuffer buffer, String ip) {
+		buffer.flip();
+		StringBuilder sb = new StringBuilder();
+		
+		while (buffer.hasRemaining()) {
+			sb.append((char)buffer.get());
+		}
+		
+		buffer.flip();
+		request = sb.toString();
+		
+		addHeader("Connection", "closed");
+		addHeader("X-Forwarded-For", ip);
+		rmHeader("Proxy-Connection");
+	}
+	
+	private int indexToInsertNewHeader() {
+		
+		int i = startingIndexOfHeader("Host");
+		if (i != -1) {
+			while (request.charAt(i) != '\n') {
+				i++;
+			}
+		}
+		else {
+			System.exit(1);
+		}
+		return i+1;
+	}
+	
+	private void rmHeader(String header) {
+		int i = startingIndexOfHeader(header);
+		if (i != -1) {
+			int j = i;
+			while (request.charAt(j) != '\n') {
+				j++;
+			}
+			request = request.substring(0, i) + request.substring(j + 1);
 		}
 	}
 	
@@ -69,33 +117,6 @@ public class RequestSender implements Runnable {
 		return false;
 	}
 	
-	private void startEditor(ByteBuffer buffer, String ip) {
-		buffer.flip();
-		StringBuilder sb = new StringBuilder();
-		
-		while (buffer.hasRemaining()) {
-			sb.append((char)buffer.get());
-		}
-		
-		buffer.flip();
-		request = sb.toString();
-		
-		addHeader("Connection", "closed");
-		addHeader("X-Forwarded-For", ip);
-		removeHeader("Proxy-Connection");
-	}
-	
-	private void removeHeader(String header) {
-		int i = headerFieldStart(header);
-		if (i != -1) {
-			int j = i;
-			while (request.charAt(j) != '\n') {
-				j++;
-			}
-			request = request.substring(0, i) + request.substring(j + 1);
-		}
-	}
-	
 	private void addHeader(String header, String value) {
 		
 		if (value == null) {
@@ -103,12 +124,10 @@ public class RequestSender implements Runnable {
 		}
 		
 		StringBuilder sb = new StringBuilder();
-		int i = headerFieldStart(header);
+		int i = startingIndexOfHeader(header);
 		if (i == -1) {
-			i = newHeaderFieldIndex();
-			sb.append(request.substring(0, i));
-			sb.append(header + ": " + value + "\r\n");
-			sb.append(request.substring(i));
+			i = indexToInsertNewHeader();
+			sb.append(request.substring(0, i) + header + ": " + value + "\r\n" + request.substring(i));
 		}
 		else {
 			i = i + header.length() + 2;
@@ -119,28 +138,12 @@ public class RequestSender implements Runnable {
 				j++;
 			}
 			
-			sb.append(request.substring(0, i));
-			sb.append(value);
-			sb.append(request.substring(j));
+			sb.append(request.substring(0, i) + value + request.substring(j));
 		}
 		request = sb.toString();
 	}
 	
-	private int newHeaderFieldIndex() {
-		
-		int i = headerFieldStart("Host");
-		if (i != -1) {
-			while (request.charAt(i) != '\n') {
-				i++;
-			}
-		}
-		else {
-			System.exit(1);
-		}
-		return i+1;
-	}
-	
-	private int headerFieldStart(String header) {
+	private int startingIndexOfHeader(String header) {
 		
 		int i = 0;
 		int temp = 0;
@@ -149,18 +152,17 @@ public class RequestSender implements Runnable {
 			if (temp == -1 || request.charAt(temp-1)=='\n') {
 				return temp;
 			}
-			i++;
-				
+			i++;				
 		}
 	}
 	
-	public String getHostName() {
+	public String searchNameOfHost() {
 		int i = request.indexOf("Host");
 		
 		if (i == -1) {
 			System.exit(1);
 		}
-		i = i + "Host".length() + 2;
+		i = i + 6;//The length of "host: " 
 		int j = i;
 		
 		while (request.charAt(j) != '\r') {
@@ -168,14 +170,6 @@ public class RequestSender implements Runnable {
 		}
 		
 		return request.substring(i, j);
-	}
-	
-	public byte[] toByteArr() {
-		return request.getBytes();
-	}
-	
-	public String toString() {
-		return request;
 	}
 
 }

@@ -15,9 +15,11 @@ public class RequestProcessor implements Runnable {
 	public void run() {
 		try {
 			InputStream inputStream = outSocket.getInputStream();
-			OutputStream outputStream = listenerSocket.getOutputStream();
 			
 			int temp = inputStream.read();	
+			
+			OutputStream outputStream = listenerSocket.getOutputStream();
+			
 			while (temp != -1) {
 				outputStream.write(temp);
 				temp = inputStream.read();

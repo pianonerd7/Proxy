@@ -9,7 +9,7 @@ public class RequestListener {
 		
 		try {
 			ServerSocket welcomeSocket = new ServerSocket(portNum);
-			System.out.println("A connection with portNumber: " + portNum + "is being created!");
+			System.out.println("A connection with portNumber: " + portNum + " is being created!");
 		
 			while(true) {
 				Socket connectionSocket = welcomeSocket.accept();

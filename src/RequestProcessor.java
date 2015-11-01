@@ -13,14 +13,12 @@ public class RequestProcessor implements Runnable {
 	
 	@Override
 	public void run() {
-		
 		try {
 			InputStream inputStream = outSocket.getInputStream();
 			OutputStream outputStream = listenerSocket.getOutputStream();
 			
 			int temp = inputStream.read();	
 			while (temp != -1) {
-				System.out.print((char)temp);
 				outputStream.write(temp);
 				temp = inputStream.read();
 			}			
@@ -29,7 +27,6 @@ public class RequestProcessor implements Runnable {
 		catch (IOException e) {
 			System.out.println(e.getMessage());
 		}
-		System.out.println("done with request processor ");
 	}
 
 }

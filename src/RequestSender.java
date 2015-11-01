@@ -27,6 +27,7 @@ public class RequestSender implements Runnable {
 			
 			
 			int temp = requestInput.read();
+			System.out.println("LALALALALA");
 			while (temp != -1) {
 				System.out.print((char)temp);
 				output.write(temp);

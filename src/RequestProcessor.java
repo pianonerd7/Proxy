@@ -18,19 +18,12 @@ public class RequestProcessor implements Runnable {
 			InputStream inputStream = outSocket.getInputStream();
 			OutputStream outputStream = listenerSocket.getOutputStream();
 			
-			/*
-			int temp = inputStream.read();
+			int temp = inputStream.read();	
 			while (temp != -1) {
-				System.out.println((char)temp);
-				outputStream.write(temp);
-				temp = inputStream.read();
-			}
-			*/
-			int temp;
-			while ((temp = inputStream.read()) != -1) {
 				System.out.print((char)temp);
 				outputStream.write(temp);
-			}
+				temp = inputStream.read();
+			}			
 			outSocket.close();
 		} 
 		catch (IOException e) {

@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.io.*;
 import java.net.*;
+import java.nio.ByteBuffer;
 
 public class RequestSender implements Runnable {
 
@@ -16,27 +17,37 @@ public class RequestSender implements Runnable {
 
 		InetAddress requestIP = requestSocket.getInetAddress();
 		int requestPort = requestSocket.getPort();
-		System.out.println(requestPort + ","+ requestIP);
+		System.out.println("Your request comes from IP address: "+ requestIP + "with port of: "+ requestPort);
 		
 		try {
 			InputStream requestInput = requestSocket.getInputStream();
-			Socket outSocket = new Socket("case.edu", 80);
-			OutputStream output = outSocket.getOutputStream();
-			RequestProcessor processor = new RequestProcessor(requestSocket, outSocket);
-			new Thread(processor).start();
-			
-			
+			ByteBuffer bufferInput = ByteBuffer.allocate(16384);
+
 			int temp = requestInput.read();
 			System.out.println("LALALALALA");
 			while (temp != -1) {
 				System.out.print((char)temp);
-				output.write(temp);
+				bufferInput.put((byte)temp);
+				
+				if (isEndReq((char)temp)) {
+					
+				}
 				temp = requestInput.read();
+				
+				Socket outSocket = new Socket("case.edu", 80);
+				OutputStream output = outSocket.getOutputStream();
+				RequestProcessor processor = new RequestProcessor(requestSocket, outSocket);
+				new Thread(processor).start();
 			}
 		} 
 		catch (IOException e) {
 			System.out.println(e.getMessage());
 		}
+	}
+	
+	private boolean isEndReq(char curChar) {
+		
+		return true;
 	}
 
 }
